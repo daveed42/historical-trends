@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Canvas Chart Demo</title>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>    <script src="pointChart.js" type="text/javascript"></script>-->
+    <!--<script type="text/javascript" src="jquery-1.6.min.js"></script>-->
+    <script type="text/javascript" src="pointChart.js"></script>
+    <script type="text/javascript" src="renderChart.js"></script>
+    <script type="text/javascript">
+
+        window.onload = function () {
+            var dataDef = { title: "",
+                            xLabel: '',
+                            yLabel: '',
+                            labelFont: '19pt Arial',
+                            dataPointFont: '10pt Arial',
+                            renderTypes: [CanvasChart.renderType.points],
+                            normalys: {low: '1000', high: '3309'},
+                            dataPoints:[{ y: 3309, x: "2016-09-19T10:24:08.741Z" },
+                                        { y: 2927, x: "2016-09-15T21:10:06.716Z" },
+                                        { y: 6264, x: "2016-09-19T15:57:56.065Z" },
+                                        { y: 3890, x: "2016-09-19T01:52:22.028Z" },
+                                        { y: 5290, x: "2016-09-15T11:33:32.350Z" },
+                                        { y: 7909, x: "2016-10-10T10:24:08.741Z" },
+                                        { y: 4309, x: "2016-09-22T10:24:08.741Z" },
+                                        { y: 927,  x: "2016-09-14T21:10:06.716Z" },
+                                        { y: 6264, x: "2016-09-25T15:57:56.065Z" }]
+                                       };
+            CanvasChart.render('canvas', dataDef);
+        };
+
+    </script>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="250"></canvas>
+</body>
+</html>
+<!--[{ x: '1730', y: 30.9 },
+             { x: '1810', y: 7.2 },
+             { x: '1830', y: 12.8 },
+             { x: '1850', y: 23.1 },
+             { x: '1870', y: 36.5 },
+             { x: '1890', y: 62.9 },
+             { x: '1910', y: 92.2 },
+             { x: '1920', y: 92.2 },
+             { x: '1925', y: 92.2 },
+             { x: '1932', y: 95.2 },
+             { x: '1935', y: 95.2 },
+             { x: '1950', y: 151.3 },
+             { x: '1970', y: 203.2 },
+             { x: '1990', y: 248.7 },
+             { x: '2010', y: 308.7}]-->
+<!--[{ y: 3309, x: "2016-09-19T10:24:08.741Z" },
+{ y: 2927, x: "2016-09-15T21:10:06.716Z" },
+{ y: 6264, x: "2016-09-19T15:57:56.065Z" },
+{ y: 3890, x: "2016-09-19T01:52:22.028Z" },
+{ y: 5290, x: "2016-09-15T11:33:32.350Z" },
+{ y: 7909, x: "2016-10-10T10:24:08.741Z" },
+{ y: 4309, x: "2016-09-22T10:24:08.741Z" },
+{ y: 927,  x: "2016-09-14T21:10:06.716Z" },
+{ y: 6264, x: "2016-09-25T15:57:56.065Z" }]-->
