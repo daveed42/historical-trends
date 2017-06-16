@@ -119,16 +119,19 @@ var CanvasChart = function () {
         var maxAndMins = getMaxAndMins();
         var xLength = maxAndMins.largestX - maxAndMins.smallestX;
         var yLength = maxAndMins.largestY - maxAndMins.smallestY;
-        var a, b, y;
+        var a, b, c, d, y;
         var xPos, yPos;
         var txt, txtSize;
         var prevY = 0;
         var prevX = 0;
+        var nextY = 0;
+        var nextX = 0;
         var first = true;
-        var prevUnder = false;
+        var prevPos = "";
         var shadedY;
         var shadedHeight = (data.normalValues.high - data.normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
 
+        //Draw rectangle for normal value range
         if (data.normalValues.high < maxAndMins.largestY && data.normalValues.low > maxAndMins.smallestY)
         {
             y = data.normalValues.high - maxAndMins.smallestY;
@@ -208,37 +211,92 @@ var CanvasChart = function () {
                 ctx.closePath();
             }
 
+            if (i != newData.length - 1)
+            {
+                c = newData[i+1].x - maxAndMins.smallestX;
+                nextX = (c/xLength)*(chartWidth-30);
+                d = newData[i+1].y - maxAndMins.smallestY;
+                nextY = (chartHeight-30) - (d/yLength)*(chartHeight-30);
+            }
+
             //Render value
             if (first == true)
             {
-                txt = newData[i].y;
-                txtSize = ctx.measureText(txt);
-                ctx.textAlign = 'center';
-                ctx.fillText(txt, xPos, yPos - 5);
+                //if first, compare to next
+                if (nextX - xPos < 20 && yPos - nextY <= 20 && yPos - nextY >= 0)
+                {
+                    prevPos = "bottom";
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos + 15);
+                    console.log("1.1");
+                }
+                else
+                {
+                    prevPos = "top";
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos - 5);
+                    console.log("1.2");
+                }
                 first = false;
-                console.log("1");
             }
-            else if (xPos - prevX < 15 && prevUnder == false && Math.abs(yPos - prevY) < 30)
+            else if (i == newData.length - 1)
             {
-                txt = newData[i].y;
-                txtSize = ctx.measureText(txt);
-                ctx.textAlign = 'center';
-                ctx.fillText(txt, xPos, yPos + 15);
-                prevUnder = true;
-                console.log("2");
+                //if last, compare to prev
+                if (xPos - prevX < 20 && yPos - prevX <= 20 && yPos - nextY >= 0)
+                {
+                    prevPos = "bottom";
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos + 15);
+                    console.log("2.1");
+                }
+                else
+                {
+                    prevPos = "top";
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos - 5);
+                    console.log("2.2");
+                }
             }
             else
             {
-                txt = newData[i].y;
-                txtSize = ctx.measureText(txt);
-                ctx.textAlign = 'center';
-                ctx.fillText(txt, xPos, yPos - 5);
-                prevUnder = false;
-                console.log("3");
+                //if 2nd to n-1, compare to prev and next
+                if (xPos - prevX < 20 && prevPos == "top" && yPos - prevY <= 20 && yPos - nextY >= 0)
+                {
+                    prevPos = "bottom";
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos + 15);
+                    console.log("3.1");
+                }
+                else if (nextX - xPos < 20 && prevPos == "top" && yPos - nextY <= 20 && yPos - nextY >= 0)
+                {
+                    prevPos = "bottom";
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos + 15);
+                    console.log("3.2");
+                }
+                else
+                {
+                    txt = newData[i].y;
+                    txtSize = ctx.measureText(txt);
+                    ctx.textAlign = 'center';
+                    ctx.fillText(txt, xPos, yPos - 5);
+                    console.log("3.3");
+                }
             }
 
-            console.log("prevX", prevX, "xPos", xPos, "prevY", prevY, "yPos", yPos, "prevUnder", prevUnder);
-            //count++;
+            console.log("prevX", prevX, "xPos", xPos, "prevY", prevY, "yPos", yPos, "nextX", nextX, "nextY", nextY);
 
             prevX = xPos;
             prevY = yPos;
@@ -353,10 +411,6 @@ var CanvasChart = function () {
 
         console.log(smallestX, smallestY, largestX, largestY);
         return {smallestX: smallestX, smallestY: smallestY, largestX: largestX, largestY: largestY};
-    };
-
-    var getXInc = function() {
-        return Math.round(xMax / newData.length)-1;
     };
 
     return {
