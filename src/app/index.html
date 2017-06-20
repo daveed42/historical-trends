@@ -9,13 +9,15 @@
     <script type="text/javascript">
 
         window.onload = function () {
-            var dataDef = { title: "",
+            var dataDef = { title: "Med A",
                             xLabel: '',
                             yLabel: '',
-                            labelFont: '19pt Arial',
-                            dataPointFont: '10pt Arial',
+                            labelFont: '10pt Calibri',
+                            dataPointFont: '8pt Calibri',
                             renderTypes: [CanvasChart.renderType.points],
+                            dashedLines: 'true',
                             normalValues: {low: '1000', high: '5009'},
+                            overallMaxAndMin: {min: '500', max: '10000'},
                             dataPoints:[{ y: 3309, x: "2016-09-19T10:24:08.741Z" },
                                         { y: 2927, x: "2016-09-15T21:10:06.716Z" },
                                         { y: 6264, x: "2016-09-19T15:57:56.065Z" },

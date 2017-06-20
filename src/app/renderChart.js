@@ -4,7 +4,7 @@ var CanvasChart = function () {
     var chartHeight, chartWidth, yMax, xMax, data;
     var maxYValue = 0;
     var ratio = 0;
-    var renderType = { bars: 'bars', points: 'points' };
+    var renderType = { bars: 'bars', points: 'points', lines: 'lines' };
 
     var render = function(canvasId, dataObj) {
         data = dataObj;
@@ -12,7 +12,7 @@ var CanvasChart = function () {
         newData = sortData(newData);
         getMaxDataYValue();
         var canvas = document.getElementById(canvasId);
-        chartHeight = canvas.getAttribute('height');
+        chartHeight = 100; //canvas.getAttribute('height'); //100
         chartWidth = canvas.getAttribute('width');
         xMax = chartWidth - (margin.left + margin.right);
         yMax = chartHeight - (margin.top + margin.bottom);
@@ -46,12 +46,22 @@ var CanvasChart = function () {
 
     var renderChart = function () {
         renderLines();
+        renderName();
 
         //render data based upon type of renderType(s) that client supplies
         if (data.renderTypes == undefined || data.renderTypes == null) data.renderTypes = [renderType.points];
         for (var i = 0; i < data.renderTypes.length; i++) {
             renderData(data.renderTypes[i]);
         }
+    }
+
+    var renderName = function ()
+    {
+        ctx.save();
+        ctx.font = data.labelFont;
+        ctx.textAlign = 'left';
+        ctx.fillText(data.title, 5, 10);
+        ctx.restore();
     }
 
     var getMaxDataYValue = function () {
@@ -121,7 +131,8 @@ var CanvasChart = function () {
         var yLength = maxAndMins.largestY - maxAndMins.smallestY;
         var a, b, c, d, y;
         var xPos, yPos;
-        var txt, txtSize;
+        var txt;
+        var fontSize = '8pt Calibri';
         var prevY = 0;
         var prevX = 0;
         var nextY = 0;
@@ -146,16 +157,16 @@ var CanvasChart = function () {
         }
         else if (data.normalValues.high > maxAndMins.largestY && data.normalValues.low > maxAndMins.smallestY)
         {
-            y = maxAndMins.largestY;
+            var shadedHeight = 15 + (maxAndMins.largestY - data.normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
-            ctx.rect(-15, 0, chartWidth, shadedHeight);
+            ctx.rect(-15, 0, chartWidth + 15, shadedHeight);
             ctx.fill();
-            console.log("Chart 2");
+            console.log("Chart 2", y);
         }
         else if (data.normalValues.high > maxAndMins.largestY && data.normalValues.low < maxAndMins.smallestY)
         {
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
-            ctx.rect(-15, 0, chartWidth, chartHeight);
+            ctx.rect(-15, 0, chartWidth + 15, chartHeight);
             ctx.fill();
             console.log("Chart 3");
         }
@@ -163,7 +174,7 @@ var CanvasChart = function () {
         {
             y = data.normalValues.high - maxAndMins.smallestY;
             shadedY = (chartHeight-30) - (y/yLength)*(chartHeight-30);
-            //shadedHeight =
+            shadedHeight += 10;
             ctx.save();
             ctx.translate(15, 15);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
@@ -177,6 +188,13 @@ var CanvasChart = function () {
 
         ctx.save();
         ctx.translate(15, 15);
+
+        //Get font for value rendering
+        if (data.dataPointFoint)
+        {
+            fontSize = data.dataPointFoint;
+        }
+        ctx.font = fontSize;
 
         for (var i = 0; i < newData.length; i++)
         {
@@ -227,7 +245,6 @@ var CanvasChart = function () {
                 {
                     prevPos = "bottom";
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos + 15);
                     console.log("1.1");
@@ -236,7 +253,6 @@ var CanvasChart = function () {
                 {
                     prevPos = "top";
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos - 5);
                     console.log("1.2");
@@ -250,7 +266,6 @@ var CanvasChart = function () {
                 {
                     prevPos = "bottom";
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos + 15);
                     console.log("2.1");
@@ -259,7 +274,6 @@ var CanvasChart = function () {
                 {
                     prevPos = "top";
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos - 5);
                     console.log("2.2");
@@ -272,7 +286,6 @@ var CanvasChart = function () {
                 {
                     prevPos = "bottom";
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos + 15);
                     console.log("3.1");
@@ -281,7 +294,6 @@ var CanvasChart = function () {
                 {
                     prevPos = "bottom";
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos + 15);
                     console.log("3.2");
@@ -289,7 +301,6 @@ var CanvasChart = function () {
                 else
                 {
                     txt = newData[i].y;
-                    txtSize = ctx.measureText(txt);
                     ctx.textAlign = 'center';
                     ctx.fillText(txt, xPos, yPos - 5);
                     console.log("3.3");
