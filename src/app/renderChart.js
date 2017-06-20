@@ -204,6 +204,16 @@ var CanvasChart = function () {
             yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
             console.log(newData[i].y, xPos, yPos);
 
+            //Render dashed line if necessary
+            if (data.dashedLines == true)
+            {
+                if (first == true) {} // do nothing
+                else
+                {
+                    drawDashedLine(prevX, prevY, xPos, yPos);
+                }
+            }
+
             if (newData[i].y < data.normalValues.low || newData[i].y > data.normalValues.high)
             {
                 //Render red circle
@@ -325,6 +335,16 @@ var CanvasChart = function () {
         ctx.lineTo(endX, endY);
         ctx.stroke();
         ctx.closePath();
+    }
+
+    var drawDashedLine = function drawDashedLine(startX, startY, endX, endY)
+    {
+        ctx.strokeStyle = 'rgba(0, 0, 0, .5)';
+        ctx.beginPath();
+        ctx.setLineDash([10, 10]);
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
     }
 
     var getMaxAndMins = function () {
