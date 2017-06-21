@@ -4,6 +4,8 @@ var CanvasChart = function () {
     var chartHeight, chartWidth, yMax, xMax, data;
     var maxYValue = 0;
     var ratio = 0;
+    var count = 0;
+    var overallMax, overallMin;
     var renderType = { bars: 'bars', points: 'points', lines: 'lines' };
 
     var render = function(canvasId, dataObj) {
@@ -443,6 +445,31 @@ var CanvasChart = function () {
         console.log(smallestX, smallestY, largestX, largestY);
         return {smallestX: smallestX, smallestY: smallestY, largestX: largestX, largestY: largestY};
     };
+
+    var overallMaxAndMin = function()
+    {
+        if (data.dataPoints.data.length % 2 == 0)
+        {
+
+        }
+        else
+        {
+
+        }
+        for (var i = 0; i < data.dataPoints.length; i++)
+        {
+            for (var j = 0; j < data.dataPoints.data.length; j++)
+            {
+                if (data.dataPoints[i].data[j])
+            }
+        }
+    }
+
+    var translateNewChart = function translateNewChart(xTranslate)
+    {
+        ctx.translate(xTranslate, count*chartHeight);
+        count++;
+    }
 
     return {
         renderType: renderType,
