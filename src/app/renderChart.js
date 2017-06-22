@@ -6,12 +6,17 @@ var CanvasChart = function () {
     var ratio = 0;
     var count = 0;
     var overallMax, overallMin;
+    var newData = []
     var renderType = { bars: 'bars', points: 'points', lines: 'lines' };
 
     var render = function(canvasId, dataObj) {
         data = dataObj;
-        newData = data.dataPoints.map(makeDate);
-        newData = sortData(newData);
+        for (var i = 0; i < data.dataPoints.length; i++)
+        {
+            newData[i] = data.dataPoints[i].data.map(makeDate);
+            newData[i].sort(function(a, b){return a.x - b.x});
+        }
+        console.log(newData);
         getMaxDataYValue();
         var canvas = document.getElementById(canvasId);
         chartHeight = 100; //canvas.getAttribute('height'); //100
@@ -20,7 +25,6 @@ var CanvasChart = function () {
         yMax = chartHeight - (margin.top + margin.bottom);
         ratio = yMax / maxYValue;
         ctx = canvas.getContext("2d");
-        //ctx.translate(5,0); maybe do this??
         renderChart();
         doStuff();
     }
@@ -30,47 +34,90 @@ var CanvasChart = function () {
         return data;
     }
 
-    //insertion sort
-    var sortData = function (data) {
-        for (let i = 0; i < data.length; i++)
-        {
-            let temp = data[i];
-            let j = i - 1;
-            while (j >= 0 && data[j].x > temp.x)
-            {
-                data[j + 1] = data[j];
-                j--;
-            }
-            data[j + 1] = temp;
-        }
-        return data;
-    }
-
     var renderChart = function () {
-        renderLines();
-        renderName();
+        var overallMaxAndMin = getOverallMaxAndMin();
+        var offsetAndWidth;
+        for (let i = 0; i < data.dataPoints.length; i++)
+        {
+            ctx.save();
+            translateLines();
+            renderLines();
+            renderName(i);
+            ctx.save();
+            offsetAndWidth = getOffsetAndWidth(overallMaxAndMin.min, overallMaxAndMin.max, newData[i][0].x, newData[i][newData[i].length-1].x);
+            translateNewChart(offsetAndWidth.offset);
+            //render data
+            if (data.dataPoints[i].code == 1)
+            {
+                renderData(newData[i], i, offsetAndWidth.offset, offsetAndWidth.width, overallMaxAndMin.max, overallMaxAndMin.min);
+            }
+            ctx.restore();
+            ctx.restore();
+        }
+
 
         //render data based upon type of renderType(s) that client supplies
-        if (data.renderTypes == undefined || data.renderTypes == null) data.renderTypes = [renderType.points];
+        /*if (data.renderTypes == undefined || data.renderTypes == null) data.renderTypes = [renderType.points];
         for (var i = 0; i < data.renderTypes.length; i++) {
             renderData(data.renderTypes[i]);
-        }
+        }*/
     }
 
-    var renderName = function ()
+    var renderName = function (i)
     {
         ctx.save();
         ctx.font = data.labelFont;
         ctx.textAlign = 'left';
-        ctx.fillText(data.title, 5, 10);
+        ctx.fillText(data.dataPoints[i].title, 5, 12);
         ctx.restore();
     }
 
     var getMaxDataYValue = function () {
-        for (var i = 0; i < newData.length; i++) {
+        for (let i = 0; i < newData.length; i++) {
             if (newData[i].y > maxYValue) maxYValue = newData[i].y;
         }
     };
+
+    var getOverallMaxAndMin = function()
+    {
+        var max = newData[0][newData[0].length-1].x;
+        var min = newData[0][0].x;
+        for (let i = 0; i < newData.length; i++)
+        {
+            if (newData[i][0].x < min)
+            {
+                min = newData[i][0].x;
+            }
+            if (newData[i][newData[i].length-1].x > max)
+            {
+                max = newData[i][newData[i].length-1].x
+            }
+        }
+        return {min: min, max: max};
+    }
+
+    var getOffsetAndWidth = function getOffsetAndWidth(oMin, oMax, min, max)
+    {
+        let oLength = oMax.valueOf() - oMin.valueOf();
+        let length = max.valueOf() - min.valueOf();
+        let width = (length/oLength)*chartWidth;
+
+        let leftRatio = min.valueOf() - oMin.valueOf();
+        let rightRatio = oMax.valueOf() - min.valueOf();
+        let offset = (leftRatio/(leftRatio+rightRatio))*chartWidth;
+        return {width: width, offset: offset};
+    }
+
+    var translateLines = function()
+    {
+        ctx.translate(0, count*chartHeight);
+        count++;
+    }
+
+    var translateNewChart = function translateNewChart(xTranslate)
+    {
+        ctx.translate(xTranslate, 0);
+    }
 
     var renderText = function renderText() {
         var labelFont = (data.labelFont != null) ? data.labelFont : '20pt Arial';
@@ -96,10 +143,10 @@ var CanvasChart = function () {
     var renderLines = function renderLines() {
 
         //Vertical line
-        drawLine(margin.left, margin.top, margin.left, yMax, 'black');
+        drawLine(1, 0, 1, chartHeight, 'black');
 
         //Horizontal Line
-        drawLine(margin.left, yMax, xMax+10, yMax, 'black');
+        drawLine(0, chartHeight, chartWidth, chartHeight, 'black');
     }
 
     var renderLabels = function renderLabels() {
@@ -127,8 +174,9 @@ var CanvasChart = function () {
         }
     }
 
-    var renderData = function(type) {
-        var maxAndMins = getMaxAndMins();
+    var renderData = function(newData, index, offset, width, max, min) {
+        console.log("newData", newData);
+        var maxAndMins = getMaxAndMins(newData);
         var xLength = maxAndMins.largestX - maxAndMins.smallestX;
         var yLength = maxAndMins.largestY - maxAndMins.smallestY;
         var a, b, c, d, y;
@@ -140,47 +188,48 @@ var CanvasChart = function () {
         var nextY = 0;
         var nextX = 0;
         var first = true;
+        var whole = false;
         var prevPos = "";
         var shadedY;
-        var shadedHeight = (data.normalValues.high - data.normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
+        var shadedHeight = (data.dataPoints[index].normalValues.high - data.dataPoints[index].normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
 
         //Draw rectangle for normal value range
-        if (data.normalValues.high < maxAndMins.largestY && data.normalValues.low > maxAndMins.smallestY)
+        if (data.dataPoints[index].normalValues.high < maxAndMins.largestY && data.dataPoints[index].normalValues.low > maxAndMins.smallestY)
         {
-            y = data.normalValues.high - maxAndMins.smallestY;
+            y = data.dataPoints[index].normalValues.high - maxAndMins.smallestY;
             shadedY = (chartHeight-30) - (y/yLength)*(chartHeight-30);
             ctx.save();
             ctx.translate(15, 15);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
-            ctx.rect(-15, shadedY, chartWidth, shadedHeight);
+            ctx.rect(-15 - offset, shadedY, chartWidth, shadedHeight);
             ctx.fill();
             ctx.restore();
             console.log("Chart 1");
         }
-        else if (data.normalValues.high > maxAndMins.largestY && data.normalValues.low > maxAndMins.smallestY)
+        else if (data.dataPoints[index].normalValues.high > maxAndMins.largestY && data.normalValues.dataPoints[index].low > maxAndMins.smallestY)
         {
-            var shadedHeight = 15 + (maxAndMins.largestY - data.normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
+            var shadedHeight = 15 + (maxAndMins.largestY - data.dataPoints[index].normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
-            ctx.rect(-15, 0, chartWidth + 15, shadedHeight);
+            ctx.rect(-15 - offset, 0, chartWidth + 15, shadedHeight);
             ctx.fill();
             console.log("Chart 2", y);
         }
-        else if (data.normalValues.high > maxAndMins.largestY && data.normalValues.low < maxAndMins.smallestY)
+        else if (data.dataPoints[index].normalValues.high > maxAndMins.largestY && data.dataPoints[index].normalValues.low < maxAndMins.smallestY)
         {
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
-            ctx.rect(-15, 0, chartWidth + 15, chartHeight);
+            ctx.rect(-15 - offset, 0, chartWidth + 15, chartHeight);
             ctx.fill();
             console.log("Chart 3");
         }
         else
         {
-            y = data.normalValues.high - maxAndMins.smallestY;
+            y = data.dataPoints[index].normalValues.high - maxAndMins.smallestY;
             shadedY = (chartHeight-30) - (y/yLength)*(chartHeight-30);
             shadedHeight += 10;
             ctx.save();
             ctx.translate(15, 15);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
-            ctx.rect(-15, shadedY, chartWidth, shadedHeight);
+            ctx.rect(-15 - offset, shadedY, chartWidth, shadedHeight);
             ctx.fill();
             ctx.restore();
             console.log("Chart 4");
@@ -188,8 +237,23 @@ var CanvasChart = function () {
 
         console.log("Hight and Y", shadedHeight, shadedY);
 
+        if (newData[0].x == min && newData[newData.length-1].x == max)
+        {
+            whole = true;
+            console.log(whole);
+        }
+
         ctx.save();
-        ctx.translate(15, 15);
+        //ctx.translate(15, 15);
+
+        if (whole == true) //TODO figure out why they don't line up exactly!!! 
+        {
+            ctx.translate(15, 15);
+        }
+        else
+        {
+            ctx.translate(15, 15);
+        }
 
         //Get font for value rendering
         if (data.dataPointFoint)
@@ -198,16 +262,27 @@ var CanvasChart = function () {
         }
         ctx.font = fontSize;
 
-        for (var i = 0; i < newData.length; i++)
+        for (let i = 0; i < newData.length; i++)
         {
-            a = newData[i].x - maxAndMins.smallestX;
-            xPos = (a/xLength)*(chartWidth-30);
-            b = newData[i].y - maxAndMins.smallestY;
-            yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
+            if (whole == false)
+            {
+                a = newData[i].x - maxAndMins.smallestX;
+                xPos = (a/xLength)*(width - 30);
+                b = newData[i].y - maxAndMins.smallestY;
+                yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
+            }
+            else
+            {
+                a = newData[i].x - maxAndMins.smallestX;
+                xPos = (a/xLength)*(width-30);
+                b = newData[i].y - maxAndMins.smallestY;
+                yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
+            }
+
             console.log(newData[i].y, xPos, yPos);
 
             //Render dashed line if necessary
-            if (data.dashedLines == true)
+            if (data.dataPoints[index].dashedLines == true)
             {
                 if (first == true) {} // do nothing
                 else
@@ -216,7 +291,7 @@ var CanvasChart = function () {
                 }
             }
 
-            if (newData[i].y < data.normalValues.low || newData[i].y > data.normalValues.high)
+            if (newData[i].y < data.dataPoints[index].normalValues.low || newData[i].y > data.dataPoints[index].normalValues.high)
             {
                 //Render red circle
                 ctx.beginPath();
@@ -244,7 +319,7 @@ var CanvasChart = function () {
             if (i != newData.length - 1)
             {
                 c = newData[i+1].x - maxAndMins.smallestX;
-                nextX = (c/xLength)*(chartWidth-30);
+                nextX = (c/xLength)*(width-30);
                 d = newData[i+1].y - maxAndMins.smallestY;
                 nextY = (chartHeight-30) - (d/yLength)*(chartHeight-30);
             }
@@ -349,7 +424,7 @@ var CanvasChart = function () {
         ctx.stroke();
     }
 
-    var getMaxAndMins = function () {
+    var getMaxAndMins = function (newData) {
         if (newData.length % 2 == 0)
         {
             //set initial largest and smallest x values
@@ -445,31 +520,6 @@ var CanvasChart = function () {
         console.log(smallestX, smallestY, largestX, largestY);
         return {smallestX: smallestX, smallestY: smallestY, largestX: largestX, largestY: largestY};
     };
-
-    var overallMaxAndMin = function()
-    {
-        if (data.dataPoints.data.length % 2 == 0)
-        {
-
-        }
-        else
-        {
-
-        }
-        for (var i = 0; i < data.dataPoints.length; i++)
-        {
-            for (var j = 0; j < data.dataPoints.data.length; j++)
-            {
-                if (data.dataPoints[i].data[j])
-            }
-        }
-    }
-
-    var translateNewChart = function translateNewChart(xTranslate)
-    {
-        ctx.translate(xTranslate, count*chartHeight);
-        count++;
-    }
 
     return {
         renderType: renderType,
