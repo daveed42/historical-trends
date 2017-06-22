@@ -100,11 +100,12 @@ var CanvasChart = function () {
     {
         let oLength = oMax.valueOf() - oMin.valueOf();
         let length = max.valueOf() - min.valueOf();
-        let width = (length/oLength)*chartWidth;
+        let width = (length/oLength)*(chartWidth-30);
 
         let leftRatio = min.valueOf() - oMin.valueOf();
         let rightRatio = oMax.valueOf() - min.valueOf();
         let offset = (leftRatio/(leftRatio+rightRatio))*chartWidth;
+        console.log("offset",offset);
         return {width: width, offset: offset};
     }
 
@@ -206,9 +207,9 @@ var CanvasChart = function () {
             ctx.restore();
             console.log("Chart 1");
         }
-        else if (data.dataPoints[index].normalValues.high > maxAndMins.largestY && data.normalValues.dataPoints[index].low > maxAndMins.smallestY)
+        else if (data.dataPoints[index].normalValues.high > maxAndMins.largestY && data.dataPoints[index].normalValues.low > maxAndMins.smallestY)
         {
-            var shadedHeight = 15 + (maxAndMins.largestY - data.dataPoints[index].normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
+            shadedHeight = 15 + (maxAndMins.largestY - data.dataPoints[index].normalValues.low) / (maxAndMins.largestY) * (chartHeight - 25);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
             ctx.rect(-15 - offset, 0, chartWidth + 15, shadedHeight);
             ctx.fill();
@@ -225,7 +226,7 @@ var CanvasChart = function () {
         {
             y = data.dataPoints[index].normalValues.high - maxAndMins.smallestY;
             shadedY = (chartHeight-30) - (y/yLength)*(chartHeight-30);
-            shadedHeight += 10;
+            shadedHeight = (chartHeight-15) - shadedY;
             ctx.save();
             ctx.translate(15, 15);
             ctx.fillStyle = 'rgba(100, 100, 100, 0.25)';
@@ -246,13 +247,13 @@ var CanvasChart = function () {
         ctx.save();
         //ctx.translate(15, 15);
 
-        if (whole == true) //TODO figure out why they don't line up exactly!!! 
+        if (whole == true) //TODO figure out why they don't line up exactly!!!
         {
             ctx.translate(15, 15);
         }
         else
         {
-            ctx.translate(15, 15);
+            ctx.translate(0, 15);
         }
 
         //Get font for value rendering
@@ -267,14 +268,14 @@ var CanvasChart = function () {
             if (whole == false)
             {
                 a = newData[i].x - maxAndMins.smallestX;
-                xPos = (a/xLength)*(width - 30);
+                xPos = (a/xLength)*(width /*- 30*/);
                 b = newData[i].y - maxAndMins.smallestY;
                 yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
             }
             else
             {
                 a = newData[i].x - maxAndMins.smallestX;
-                xPos = (a/xLength)*(width-30);
+                xPos = (a/xLength)*(width /*- 30*/);
                 b = newData[i].y - maxAndMins.smallestY;
                 yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
             }
