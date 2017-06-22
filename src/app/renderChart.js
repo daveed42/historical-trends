@@ -253,7 +253,7 @@ var CanvasChart = function () {
         }
         else
         {
-            ctx.translate(0, 15);
+            ctx.translate(10, 15);
         }
 
         //Get font for value rendering
@@ -350,7 +350,7 @@ var CanvasChart = function () {
             else if (i == newData.length - 1)
             {
                 //if last, compare to prev
-                if (xPos - prevX < 20 && yPos - prevX <= 20 && yPos - nextY >= 0)
+                if (xPos - prevX < 20 && prevY - yPos <= 20 && yPos - nextY >= 0)
                 {
                     prevPos = "bottom";
                     txt = newData[i].y;
