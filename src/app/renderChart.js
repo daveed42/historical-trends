@@ -178,7 +178,7 @@ var CanvasChart = function () {
     var renderData = function(newData, index, offset, width, max, min) {
         console.log("newData", newData);
         var maxAndMins = getMaxAndMins(newData);
-        var xLength = maxAndMins.largestX - maxAndMins.smallestX;
+        var xLength = newData[newData.length-1].x - newData[0].x;
         var yLength = maxAndMins.largestY - maxAndMins.smallestY;
         var a, b, c, d, y;
         var xPos, yPos;
@@ -267,14 +267,14 @@ var CanvasChart = function () {
         {
             if (whole == false)
             {
-                a = newData[i].x - maxAndMins.smallestX;
+                a = newData[i].x - newData[0].x;
                 xPos = (a/xLength)*(width /*- 30*/);
                 b = newData[i].y - maxAndMins.smallestY;
                 yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
             }
             else
             {
-                a = newData[i].x - maxAndMins.smallestX;
+                a = newData[i].x - newData[0].x;
                 xPos = (a/xLength)*(width /*- 30*/);
                 b = newData[i].y - maxAndMins.smallestY;
                 yPos = (chartHeight-30) - (b/yLength)*(chartHeight-30);
@@ -319,7 +319,7 @@ var CanvasChart = function () {
 
             if (i != newData.length - 1)
             {
-                c = newData[i+1].x - maxAndMins.smallestX;
+                c = newData[i+1].x - newData[0].x;
                 nextX = (c/xLength)*(width-30);
                 d = newData[i+1].y - maxAndMins.smallestY;
                 nextY = (chartHeight-30) - (d/yLength)*(chartHeight-30);
@@ -428,18 +428,6 @@ var CanvasChart = function () {
     var getMaxAndMins = function (newData) {
         if (newData.length % 2 == 0)
         {
-            //set initial largest and smallest x values
-            if(newData[0].x >= newData[1].x)
-            {
-                var largestX = newData[0].x;
-                var smallestX = newData[1].x;
-            }
-            else
-            {
-                var largestX = newData[1].x;
-                var smallestX = newData[0].x;
-            }
-
             //set initial largest and smallest y values
             if(newData[0].y >= newData[1].y)
             {
@@ -456,41 +444,15 @@ var CanvasChart = function () {
         }
         else
         {
-            var largestX = newData[0].x;
-            var smallestX = newData[0].x;
             var largestY = newData[0].y;
             var smallestY = newData[0].y;
             var i = 1;
             var j = 2;
         }
 
-        //find smallest and largest x and y values in the data set
+        //find smallest and largest y values in the data set
         while (j <= newData.length)
         {
-            //x
-            if (newData[i].x >= newData[j].x)
-            {
-                if (newData[i].x > largestX)
-                {
-                    largestX = newData[i].x;
-                }
-                if (newData[j].x < smallestX)
-                {
-                    smallestX = newData[j].x;
-                }
-            }
-            else
-            {
-                if (newData[i].x < smallestX)
-                {
-                    smallestX = newData[i].x;
-                }
-                if (newData[j].x > largestX)
-                {
-                    largestX = newData[j].x;
-                }
-            }
-
             //y
             if (newData[i].y >= newData[j].y)
             {
@@ -518,8 +480,8 @@ var CanvasChart = function () {
             j+=2;
         }
 
-        console.log(smallestX, smallestY, largestX, largestY);
-        return {smallestX: smallestX, smallestY: smallestY, largestX: largestX, largestY: largestY};
+        console.log(smallestY, largestY);
+        return {smallestY: smallestY, largestY: largestY};
     };
 
     return {
